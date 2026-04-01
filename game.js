@@ -1,38 +1,55 @@
 const canvas = document.getElementById("gameCanvas");
 const ctx = canvas.getContext("2d");
 
+const startScreen = document.getElementById("startScreen");
+const playBtn = document.getElementById("playBtn");
+
 canvas.width = 400;
 canvas.height = 600;
 
-// 🐦 Bird (EASY SETTINGS)
-let bird = {
-    x: 50,
-    y: 200,
-    width: 20,
-    height: 20,
-    velocity: 0,
-    gravity: 0.4,   // slower fall
-    lift: -10       // smoother jump
-};
+// 🎮 Game State
+let gameStarted = false;
+let animationId;
 
-// 🚧 Pipes (EASY SETTINGS)
-let pipes = [];
-let frame = 0;
-let score = 0;
-let gap = 180;      // bigger gap = easier
+// 🐦 Bird
+let bird;
+let pipes;
+let frame;
+let score;
+let gap = 180;
 
-// 🎮 Controls (keyboard + mouse)
+// 🔁 Reset Game
+function resetGame() {
+    bird = {
+        x: 50,
+        y: 200,
+        width: 20,
+        height: 20,
+        velocity: 0,
+        gravity: 0.4,
+        lift: -10
+    };
+
+    pipes = [];
+    frame = 0;
+    score = 0;
+}
+
+// 🎮 Controls
 function flap() {
+    if (!gameStarted) return;
     bird.velocity = bird.lift;
 }
 
-document.addEventListener("keydown", function(e) {
+document.addEventListener("keydown", function (e) {
     if (e.code === "Space") {
         flap();
     }
 });
 
-document.addEventListener("click", flap);
+document.addEventListener("click", function () {
+    flap();
+});
 
 // 🐦 Draw Bird
 function drawBird() {
@@ -57,7 +74,7 @@ function drawPipes() {
 
     for (let i = 0; i < pipes.length; i++) {
         let pipe = pipes[i];
-        pipe.x -= 1.5;   // slower pipes
+        pipe.x -= 1.5;
 
         // Top pipe
         ctx.fillRect(pipe.x, 0, pipe.width, pipe.top);
@@ -75,17 +92,7 @@ function drawPipes() {
         }
     }
 
-    // 🧹 Remove old pipes (performance fix)
     pipes = pipes.filter(pipe => pipe.x > -50);
-}
-
-// 💀 Game Over (no lag)
-function gameOver() {
-    document.body.innerHTML = `
-        <h1>Game Over 😢</h1>
-        <h2>Score: ${score}</h2>
-        <button onclick="location.reload()">Restart</button>
-    `;
 }
 
 // 🏆 Score
@@ -95,17 +102,27 @@ function drawScore() {
     ctx.fillText("Score: " + score, 10, 30);
 }
 
+// 💀 Game Over
+function gameOver() {
+    cancelAnimationFrame(animationId);
+    gameStarted = false;
+
+    document.body.innerHTML = `
+        <h1>Game Over 😢</h1>
+        <h2>Score: ${score}</h2>
+        <button onclick="location.reload()">Restart</button>
+    `;
+}
+
 // 🔁 Game Loop
 function draw() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-    // Bird physics
     bird.velocity += bird.gravity;
     bird.y += bird.velocity;
 
     drawBird();
 
-    // Fewer pipes
     if (frame % 120 === 0) {
         createPipe();
     }
@@ -116,7 +133,16 @@ function draw() {
     score++;
     frame++;
 
-    requestAnimationFrame(draw);
+    animationId = requestAnimationFrame(draw);
 }
 
-draw();
+// ▶ START GAME
+playBtn.addEventListener("click", function () {
+    startScreen.style.display = "none";
+    canvas.style.display = "block";
+
+    resetGame();
+    gameStarted = true;
+
+    draw();
+});

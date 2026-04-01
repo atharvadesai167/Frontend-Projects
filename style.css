@@ -10,3 +10,23 @@ canvas {
     display: block;
     margin: auto;
 }
+
+#startScreen {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+}
+
+#playBtn {
+    padding: 15px 40px;
+    font-size: 24px;
+    background: rgb(255, 255, 46);
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+}
+
+#playBtn:hover {
+    background: rgb(255, 0, 0);
+}
